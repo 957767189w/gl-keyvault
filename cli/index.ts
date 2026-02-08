@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-// ---------------------------------------------------------------------------
-// glvault CLI
-//
-// Command-line tool for managing API keys in gl-keyvault.
-// Communicates with the deployed proxy service via HTTP.
-// ---------------------------------------------------------------------------
 
 import { Command } from "commander";
 import { addCommand } from "./commands/add";

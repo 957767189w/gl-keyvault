@@ -5,49 +5,45 @@ import json
 import typing
 
 
-class WeatherForecast(gl.Contract):
-    city: str
-    latitude: str
-    longitude: str
-    temperature: str
-    description: str
-    wind_speed: str
+class NewsSentiment(gl.Contract):
+    topic: str
+    sentiment: str
+    confidence: str
+    summary: str
 
-    def __init__(self, city: str, latitude: str, longitude: str):
-        self.city = city
-        self.latitude = latitude
-        self.longitude = longitude
-        self.temperature = ""
-        self.description = ""
-        self.wind_speed = ""
+    def __init__(self, topic: str):
+        self.topic = topic
+        self.sentiment = "unknown"
+        self.confidence = "none"
+        self.summary = ""
 
     @gl.public.write
-    def update_weather(self) -> typing.Any:
-        lat = self.latitude
-        lon = self.longitude
-        city = self.city
-        url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current_weather=true"
+    def analyze(self) -> typing.Any:
+        topic = self.topic
+        url = "https://www.bbc.com/search?q=" + topic
 
         def nondet() -> str:
             web_data = gl.get_webpage(url, mode="text")
             print(web_data)
 
-            task = f"""Extract the current weather from this JSON response for {city}.
+            task = f"""Analyze the sentiment of news coverage about "{topic}"
+based on the following web page content from BBC search results.
 
-JSON data:
+Web page content:
 {web_data}
+End of web page data.
 
 Respond with ONLY this JSON format:
 {{
-    "temperature": str,
-    "wind_speed": str,
-    "description": str
+    "sentiment": str,
+    "confidence": str,
+    "summary": str
 }}
 
-For description, interpret WMO weather code:
-0 = Clear sky, 1-3 = Partly cloudy, 45-48 = Fog,
-51-55 = Drizzle, 61-65 = Rain, 71-77 = Snow,
-80-82 = Rain showers, 95-99 = Thunderstorm.
+Where:
+- sentiment is one of: "positive", "negative", "neutral", "mixed"
+- confidence is one of: "high", "medium", "low"
+- summary is a one-sentence description of the overall tone
 
 It is mandatory that you respond only using the JSON format above, nothing else.
 Don't include any other words or characters, your output must be only JSON
@@ -59,20 +55,27 @@ This result should be perfectly parsable by a JSON parser without errors.
             print(result)
             return json.dumps(json.loads(result), sort_keys=True)
 
-        result_str = gl.eq_principle_strict_eq(nondet)
+        result_str = gl.eq_principle_prompt_comparative(
+            nondet,
+            "Results are equivalent if the sentiment direction and confidence level match"
+        )
         parsed = json.loads(result_str)
 
-        self.temperature = parsed["temperature"]
-        self.description = parsed["description"]
-        self.wind_speed = parsed["wind_speed"]
+        self.sentiment = parsed["sentiment"]
+        self.confidence = parsed["confidence"]
+        self.summary = parsed.get("summary", "")
 
         return parsed
 
+    @gl.public.write
+    def update_topic(self, new_topic: str) -> None:
+        self.topic = new_topic
+
     @gl.public.view
-    def get_weather(self) -> typing.Any:
+    def get_analysis(self) -> typing.Any:
         return {
-            "city": self.city,
-            "temperature": self.temperature,
-            "description": self.description,
-            "wind_speed": self.wind_speed,
+            "topic": self.topic,
+            "sentiment": self.sentiment,
+            "confidence": self.confidence,
+            "summary": self.summary,
         }

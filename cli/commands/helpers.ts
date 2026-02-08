@@ -1,15 +1,18 @@
-// ---------------------------------------------------------------------------
-// CLI shared utilities
-// ---------------------------------------------------------------------------
+import { Command } from "commander";
 
-export function getEndpoint(cmd: any): string {
-  const parent = cmd.parent;
-  return parent?.opts()?.endpoint || "http://localhost:3000";
+interface ApiResponse {
+  error?: string;
+  [key: string]: unknown;
 }
 
-export function getToken(cmd: any): string {
-  const parent = cmd.parent;
-  const token = parent?.opts()?.token;
+export function getEndpoint(cmd: Command): string {
+  const parent = cmd.parent as Command | undefined;
+  return (parent?.opts() as Record<string, string>)?.endpoint || "http://localhost:3000";
+}
+
+export function getToken(cmd: Command): string {
+  const parent = cmd.parent as Command | undefined;
+  const token = (parent?.opts() as Record<string, string>)?.token;
   if (!token) {
     console.error("Error: --token is required (or set GLVAULT_ADMIN_TOKEN env var)");
     process.exit(1);
@@ -23,7 +26,7 @@ export async function apiCall(
   method: string,
   token: string,
   body?: Record<string, unknown>
-): Promise<any> {
+): Promise<ApiResponse> {
   const url = `${endpoint}${path}`;
 
   const opts: RequestInit = {
@@ -40,7 +43,7 @@ export async function apiCall(
 
   try {
     const res = await fetch(url, opts);
-    const data = await res.json();
+    const data = (await res.json()) as ApiResponse;
 
     if (!res.ok) {
       console.error(`Error (${res.status}): ${data.error || "Unknown error"}`);

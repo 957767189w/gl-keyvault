@@ -13,14 +13,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@lib/*": ["lib/*"]
-    }
+    "moduleResolution": "node"
   },
-  "include": ["lib/**/*", "api/**/*", "cli/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "sdk", "contracts"]
+  "include": ["lib/**/*", "api/**/*"],
+  "exclude": ["node_modules", "dist", "sdk", "contracts", "cli", "tests"]
 }

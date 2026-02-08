@@ -1,13 +1,26 @@
 import { Command } from "commander";
 import { getEndpoint, getToken, apiCall, formatTimestamp } from "./helpers";
 
+interface KeyInfo {
+  alias: string;
+  base_url: string;
+  quota_used: number;
+  quota_limit: number;
+  rotated_at: string | null;
+}
+
+interface ListResponse {
+  count: number;
+  keys: KeyInfo[];
+}
+
 export const listCommand = new Command("list")
   .description("List all registered key aliases")
-  .action(async (_opts: any, cmd: any) => {
+  .action(async (_opts: unknown, cmd: Command) => {
     const endpoint = getEndpoint(cmd);
     const token = getToken(cmd);
 
-    const data = await apiCall(endpoint, "/api/keys/list", "GET", token);
+    const data = (await apiCall(endpoint, "/api/keys/list", "GET", token)) as unknown as ListResponse;
 
     if (data.count === 0) {
       console.log("\n  No keys registered. Use `glvault add` to register one.\n");

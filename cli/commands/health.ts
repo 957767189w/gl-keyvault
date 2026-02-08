@@ -1,14 +1,22 @@
 import { Command } from "commander";
 import { getEndpoint } from "./helpers";
 
+interface HealthData {
+  status: string;
+  version: string;
+  uptime_ms: number;
+  storage: string;
+  keys_registered: number;
+}
+
 export const healthCommand = new Command("health")
   .description("Check gl-keyvault service health")
-  .action(async (_opts: any, cmd: any) => {
+  .action(async (_opts: unknown, cmd: Command) => {
     const endpoint = getEndpoint(cmd);
 
     try {
       const res = await fetch(`${endpoint}/api/health`);
-      const data = await res.json();
+      const data = (await res.json()) as HealthData;
 
       const uptime = formatUptime(data.uptime_ms);
       const statusIcon = data.status === "ok" ? "OK" : data.status === "degraded" ? "DEGRADED" : "DOWN";
