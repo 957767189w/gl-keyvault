@@ -1,6 +1,8 @@
 {
   "version": 2,
+  "framework": null,
   "buildCommand": "tsc -p tsconfig.vercel.json",
+  "outputDirectory": "public",
   "functions": {
     "api/**/*.ts": {
       "memory": 256,
